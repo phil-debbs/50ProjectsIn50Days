@@ -1,0 +1,52 @@
+/* import Roboto fonts */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+
+/* universal selector applies to everything */
+* {
+  /* this ensures if we add padding or border to an element, it doesn't affect the width of it.  */
+  box-sizing: border-box;
+}
+body {
+  /* apply the Roboto font */
+  font-family: "Roboto", sans-serif;
+  display: flex;
+  /* flex-direction: column; */
+  /*since it's a flex box, this centers it horizontally. */
+  align-items: center;
+  /* this centers the content vertically, the caveat is that a height must be set first for the flex box*/
+  justify-content: space-around;
+  /*set the entire height to cover the viewport */
+  height: 100vh;
+  /*set to hidden so that scrollbars do not show by default*/
+  overflow: hidden;
+  margin: 0;
+}
+
+.parent1 {
+  background-color: lawngreen;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  /* with the flex,  align-items and justify-content have no effect*/
+  align-items: flex-start;
+  /* justify-content: flex-end; */
+}
+
+.parent2 {
+  background-color: lightcoral;
+  width: 100px;
+  height: 100px;
+  right: 0;
+}
+
+.parent3 {
+  background-color: red;
+  width: 50px;
+  height: 50px;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.round {
+  border-radius: 50%;
+}
