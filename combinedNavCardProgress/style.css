@@ -1,0 +1,191 @@
+/* import Roboto fonts */
+@import url("https://fonts.googleapis.com/css2?family=Muli&display=swap");
+
+/*this is how css declares variables*/
+:root {
+  --line-border-fill: #3498db;
+  --line-border-empty: #e0e0e0;
+}
+
+/* universal selector applies to everything */
+* {
+  /* this ensures if we add padding or border to an element, it doesn't affect the width of it.  */
+  box-sizing: border-box;
+}
+body {
+  /* add background-color: ; */
+  background-color: #f6f7fb;
+  /* apply the Roboto font */
+  font-family: "Muli", sans-serif;
+  /*set to hidden so that scrollbars do not show by default*/
+  overflow: hidden;
+  margin: 0;
+}
+
+.progress-main-container {
+  display: flex;
+  /*since it's a flex box, this centers it horizontally. */
+  align-items: center;
+  /* this centers the content vertically, the caveat is that a height must be set first for the flex box*/
+  justify-content: center;
+  /*set the entire height to cover the viewport */
+  height: 20vh;
+  text-align: center;
+}
+
+.progress-container {
+  display: flex;
+  justify-content: space-between;
+  position: relative; /*So that we can position other elements inside absolute */
+  margin-bottom: 20px;
+  max-width: 100%;
+  width: 350px;
+}
+
+.progress-container::before {
+  /*when you use before or after selector, you have to specify content*/
+  content: "";
+  background-color: var(--line-border-empty);
+  position: absolute;
+  top: 45%;
+  left: 0;
+  transform: translateY(-50);
+  height: 4px;
+  width: 100%;
+  z-index: -1;
+}
+
+.progress {
+  background-color: var(--line-border-fill);
+  position: absolute;
+  top: 45%;
+  left: 0;
+  transform: translateY(-50);
+  height: 4px;
+  width: 0%;
+  z-index: -1;
+  transition: 0.2s ease-in;
+}
+
+.circle {
+  background-color: #fff;
+  color: #999;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 3px solid var(--line-border-empty);
+  transition: 0.4s ease;
+}
+
+.circle.active {
+  border-color: var(--line-border-fill);
+}
+
+/* .btn {
+  background-color: var(--line-border-fill);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 8px 30px;
+  margin: 5px;
+  font-size: 14px;
+} */
+
+/* .btn:active {
+  transform: scale(0.98);
+}
+
+.btn:focus {
+  outline: 0;
+}
+
+.btn:disabled {
+  background-color: var(--line-border-empty);
+  cursor: not-allowed;
+} */
+
+.ball {
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  background: #c00;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 1s;
+}
+
+/* expanding cards */
+.expanding-card-main {
+  display: flex;
+  /*since it's a flex box, this centers it horizontally. */
+  align-items: center;
+  /* this centers the content vertically, the caveat is that a height must be set first for the flex box*/
+  justify-content: center;
+  /*set the entire height to cover the viewport */
+  height: 20vh;
+  /*set to hidden so that scrollbars do not show by default*/
+  overflow: hidden;
+  margin: 0;
+}
+
+.expanding-card-container {
+  display: flex;
+  align-items: center;
+  /* this centers the content vertically, the caveat is that a height must be set first for the flex box*/
+  justify-content: space-between;
+  /*set the entire height to cover the viewport */
+  width: 350px;
+}
+
+.panel {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 10vh;
+  border-radius: 50px;
+  color: #fff;
+  cursor: pointer;
+  flex: 0.5; /*this is the flex width. All panels will be the same width*/
+  margin: 0 5px;
+  position: relative;
+  transition: flex 1s ease-in; /*apply a 1 second transition to the flex width*/
+}
+
+.panel h3 {
+  font-size: 14px;
+  position: absolute;
+  bottom: 20px; /*that is 20px from the bottom*/
+  left: 20px; /*that is 20px from the left*/
+  margin: 0;
+  opacity: 0;
+}
+
+.panel.active {
+  flex: 5; /*set the active panel width to be more than the remaining panels*/
+}
+
+.panel.active h3 {
+  opacity: 1;
+  transition: opacity 0.3s ease-in 1s;
+}
+
+@media (max-width: 480px) {
+  .expanding-card-main {
+    width: 100vw;
+  }
+
+  /* applies to only the 4th and 5th panels */
+  .panel:nth-of-type(4),
+  .panel:nth-of-type(5),
+  .circle:nth-of-type(5),
+  .circle:nth-of-type(4) {
+    display: none;
+  }
+}
