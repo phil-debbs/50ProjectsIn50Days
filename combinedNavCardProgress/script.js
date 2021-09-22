@@ -49,24 +49,57 @@ const checkerboardObj = {};
 
 const size = 7;
 const boardColors = ["checkcolor1", "checkcolor2"];
-let row = 0;
-let col = 0;
+let currentRow = 0;
+let currentCol = 0;
+const centerIndex = Math.floor(size / 2);
 for (let i = 0; i < Math.pow(size, 2); i++) {
-  //create a div
+  //create a board div
   const div = document.createElement("div");
-  //add an id for each div
+  //add an id for each board div
   div.id = i;
-
+  //create a pebble div
+  const pebblediv = document.createElement("div");
   //since we are using a one dimensional array for a two dimensional board, we calculate the row and the column to assign the appropriate color
+  //Row is found by dividing the ith index by size and taking the lower bound.
   const irow = Math.floor(i / size);
+  //Col is found by the modulus of the ith index over size.
   const icol = i % size;
-  if (row !== irow) {
+  //when irow is != row, then the row has changed. So we make irow the current row.
+  if (currentRow !== irow) {
     const br = document.createElement("br");
     checkerboard.appendChild(br);
-    row = irow;
+    currentRow = irow;
   }
   div.classList.add("board");
-  div.classList.add(boardColors[(irow + icol) % 2]);
+
+  //exclude putting pebble in center board
+  /**
+   * Here,
+   */
+  if (i !== centerIndex * size + centerIndex) {
+    div.classList.add("checkcolor1");
+    pebblediv.classList.add("pebble");
+    pebblediv.addEventListener("click", function (e) {
+      if (pebblediv.classList.contains("active")) {
+        pebblediv.classList.remove("active");
+      } else {
+        removeAllActivePebbles();
+        pebblediv.classList.add("active");
+      }
+    });
+    div.appendChild(pebblediv);
+  } else {
+    div.classList.add("checkcolor1");
+    // div.classList.add(boardColors[(irow + icol) % 2]);
+  }
+
+  //removeAllActivePebbles
+  function removeAllActivePebbles() {
+    const pebbles = document.querySelectorAll(".pebble");
+    pebbles.forEach((pebble) => {
+      pebble.classList.remove("active");
+    });
+  }
 
   //add click event
   div.addEventListener(
@@ -92,3 +125,48 @@ for (let i = 0; i < Math.pow(size, 2); i++) {
 //   },
 //   false
 // );
+
+//make div draggable
+function dragElement(elmnt) {
+  var pos1 = 0,
+    pos2 = 0,
+    pos3 = 0,
+    pos4 = 0;
+  // if (document.getElementById(elmnt.id + "header")) {
+  //   /* if present, the header is where you move the DIV from:*/
+  //   elmnt.onmousedown = dragMouseDown;
+  // } else {
+  /* otherwise, move the DIV from anywhere inside the DIV:*/
+  elmnt.onmousedown = dragMouseDown;
+  // }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse cursor position at startup:
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // set the element's new position:
+    elmnt.style.top = elmnt.offsetTop - pos2 + "px";
+    elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
+  }
+
+  function closeDragElement() {
+    /* stop moving when mouse button is released:*/
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
