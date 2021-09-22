@@ -223,6 +223,7 @@ div.pebble {
 }
 div.pebble.active {
   background-color: red;
+  transform: scale(0.98);
 }
 
 div.checkcolor1 {
