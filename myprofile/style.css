@@ -1,0 +1,158 @@
+/* import Roboto fonts */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+
+:root {
+  --overlay-content-padding-left: 10px;
+}
+
+/* universal selector applies to everything */
+* {
+  /* this ensures if we add padding or border to an element, it doesn't affect the width of it.  */
+  box-sizing: border-box;
+}
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.container {
+  transform-origin: top left;
+  transition: transform 0.5s linear;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.container.show-nav {
+  transform: rotate(-20deg);
+}
+.container.show-nav .circle {
+  transform: rotate(-70deg);
+}
+
+.content img {
+  max-width: 100%;
+}
+
+.content {
+  /* max-width ensures that content expands only up to 1000px and not spread indefinately */
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.content small {
+  color: #555;
+  font-style: italic;
+}
+
+.content p {
+  color: #333;
+  line-height: 1.5;
+  text-align: justify;
+}
+
+.profile-banner {
+  background-image: url("images/banner-bg.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.profile {
+  position: relative;
+  width: 200px;
+  height: 250px;
+  background: url("images/philip_debrah1.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  border-top-right-radius: 50px !important;
+  border-bottom-left-radius: 50px !important;
+  margin: 20px;
+  border: 3px solid #fff;
+  box-shadow: 5px 10px 18px #000;
+}
+
+.overlay {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 1s;
+  border-top-right-radius: 50px !important;
+  border-bottom-left-radius: 50px !important;
+}
+
+.overlay .about {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  justify-content: flex-start;
+  align-items: flex-start;
+  display: flex;
+  top: 40%;
+  color: #fff;
+  flex: column;
+  padding-left: var(--overlay-content-padding-left);
+}
+.overlay .about h4 {
+  margin-bottom: 0.5em;
+}
+
+.overlay-content {
+  transition: transform 0.5s ease;
+}
+.profile:hover .overlay {
+  opacity: 1;
+}
+.profile:hover .overlay-content {
+  transform: translateX(200px);
+}
+
+.social-icons {
+  display: flex;
+  list-style: none;
+  bottom: 10px;
+  position: absolute;
+  text-align: left;
+  padding-left: var(--overlay-content-padding-left);
+}
+
+.social-icons li {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #eee;
+  margin-right: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  border-radius: 5px;
+  transition: all 1s;
+}
+
+.social-icons li:hover {
+  background: #fff;
+  color: #000;
+}
+
+@media (max-width: 450px) {
+  h1 {
+    font-size: 1.2rem;
+  }
+  .content {
+    padding: 1rem;
+  }
+  .profile-banner {
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  .profile:hover .overlay-content {
+    transform: translateX(0);
+  }
+}
