@@ -52,6 +52,7 @@ const boardColors = ["checkcolor1", "checkcolor2"];
 let currentRow = 0;
 let currentCol = 0;
 const centerIndex = Math.floor(size / 2);
+
 for (let i = 0; i < Math.pow(size, 2); i++) {
   //create a board div
   const div = document.createElement("div");
