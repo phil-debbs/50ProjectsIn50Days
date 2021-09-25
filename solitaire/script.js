@@ -1,7 +1,9 @@
 // create a checkerboard
-const checkerboard = document.getElementById("checkerboard");
+let checkerboard = document.getElementById("checkerboard");
 const movesDiv = document.getElementById("moves");
-const checkerboardObj = {};
+const exemptIndices = [0, 1, 5, 6];
+const undoStack = [];
+const undoButton = document.getElementById("undo");
 
 const size = 7;
 let currentRow = 0;
@@ -21,103 +23,122 @@ function watch(j) {
   });
 }
 
+undoButton.addEventListener("click", () => {
+  const cb = undoStack.pop();
+});
+
 const moves = watch(0);
 
-//add row container for board on same row
+function getRowCol(index) {
+  const r = Math.floor(index / size);
+  //Col is found by the modulus of the ith index over size.
+  const c = index % size;
+  return { irow: r, icol: c };
+}
+
+//add row container for dent on same row
 let rowDiv = document.createElement("div");
 rowDiv.classList.add("row");
 checkerboard.appendChild(rowDiv);
 for (let i = 0; i < Math.pow(size, 2); i++) {
-  //create a board div
+  //create a dent div
   const div = document.createElement("div");
-  div.classList.add("board");
-  div.classList.add("empty");
+  div.classList.add("dent");
   div.addEventListener("dragover", dragOver);
   div.addEventListener("dragenter", dragEnter);
   div.addEventListener("dragleave", dragLeave);
 
-  //add an id for each board div
+  //add an id for each dent div
   div.id = i;
-  //create a pebble div
-  const pebblediv = document.createElement("div");
-  pebblediv.id = i + "c";
-  pebblediv.draggable = true;
-  pebblediv.classList.add("pebble");
-  pebblediv.addEventListener("dragstart", function (e) {
+  //create a marble div
+  const marblediv = document.createElement("div");
+  marblediv.id = i + "c";
+  marblediv.draggable = true;
+  marblediv.classList.add("marble");
+  marblediv.addEventListener("dragstart", function (e) {
     // set the draggable element
     e.dataTransfer.setData(
-      "text/json",
-      JSON.stringify({ dragId: e.target.id, srcId: i })
+      "text/plain",
+      JSON.stringify({ dragId: e.target.id, srcId: e.target.parentNode.id })
     );
     this.className += " hold";
   });
-  pebblediv.addEventListener("dragend", dragEnd);
+  marblediv.addEventListener("dragend", dragEnd);
 
   div.addEventListener("drop", function (e) {
     //https://www.javascripttutorial.net/web-apis/javascript-drag-and-drop/
     // get the draggable element
-    const { dragId, srcId } = JSON.parse(e.dataTransfer.getData("text/json"));
+    const { dragId, srcId } = JSON.parse(e.dataTransfer.getData("text/plain"));
 
     //get row/col details of the source
-    const srcRow = Math.floor(srcId / size);
-    const srcCol = srcId % size;
+    const src = getRowCol(srcId);
+    const srcRow = src.irow;
+    const srcCol = src.icol;
 
     //get row/col details of the dest
     const destId = parseInt(e.target.id);
-    const destRow = Math.floor(destId / size);
-    const destCol = destId % size;
+    const dest = getRowCol(destId);
+    const destRow = dest.irow;
+    const destCol = dest.icol;
 
-    const immediateRow =
-      srcRow < destRow ? srcRow + 1 : srcRow > destRow ? srcRow - 1 : srcRow;
-    const immediateCol =
-      srcCol < destCol ? srcCol + 1 : srcCol > destCol ? srcCol - 1 : srcCol;
+    //ensure the destination is either on same row or same col. No diagonal move is allowed
+    if (srcRow === destRow || srcCol === destCol) {
+      const immediateRow =
+        srcRow < destRow ? srcRow + 1 : srcRow > destRow ? srcRow - 1 : srcRow;
+      const immediateCol =
+        srcCol < destCol ? srcCol + 1 : srcCol > destCol ? srcCol - 1 : srcCol;
 
-    //use the row and col to get the board
-    const immediateId = immediateRow * size + immediateCol;
-    const immediateBoard = document.getElementById(`${immediateId}`);
+      //use the row and col to get the dent
+      const immediateId = immediateRow * size + immediateCol;
+      const immediateBoard = document.getElementById(`${immediateId}`);
 
-    const validNeighbour =
-      Math.abs(srcRow - destRow) === 2 || Math.abs(srcCol - destCol) === 2;
-    if (validNeighbour && immediateBoard.firstChild) {
-      //valid destination so move.
-      //count moves
-      moves.watch++;
+      const validNeighbour =
+        Math.abs(srcRow - destRow) === 2 || Math.abs(srcCol - destCol) === 2;
+      if (validNeighbour && immediateBoard.firstChild) {
+        //valid destination so move.
+        //count moves
+        moves.watch++;
 
-      immediateBoard.removeChild(immediateBoard.firstChild);
-      const draggable = document.getElementById(dragId);
-      if (!e.target.draggable) {
-        // add it to the drop target
-        e.target.appendChild(draggable);
+        immediateBoard.removeChild(immediateBoard.firstChild);
+        const draggable = document.getElementById(dragId);
+        if (!e.target.draggable) {
+          // add it to the drop target
+          e.target.appendChild(draggable);
+          undoStack.push({ srcId, destId });
+        }
       }
     }
   });
   //since we are using a one dimensional array for a two dimensional board, we calculate the row and the column to assign the appropriate color
   //Row is found by dividing the ith index by size and taking the lower bound.
-  const irow = Math.floor(i / size);
+  // const irow = Math.floor(i / size);
   //Col is found by the modulus of the ith index over size.
-  const icol = i % size;
+  // const icol = i % size;
   //when irow is != row, then the row has changed. So we make irow the current row.
+  const { irow, icol } = getRowCol(i);
+
   if (currentRow !== irow) {
     rowDiv = document.createElement("div");
     rowDiv.classList.add("row");
     checkerboard.appendChild(rowDiv);
     currentRow = irow;
   }
-  div.classList.add("board");
+  div.classList.add("dent");
 
-  //exclude putting pebble in center board
+  //exclude putting marble in center dent
   /**
    * Here,
    */
   if (i !== centerIndex * size + centerIndex) {
-    div.appendChild(pebblediv);
+    if (exemptIndices.includes(irow) && exemptIndices.includes(icol)) {
+      div.classList.add("invisible");
+    } else {
+      div.appendChild(marblediv);
+    }
   }
 
   rowDiv.appendChild(div);
-  checkerboardObj[i] = { div: div };
 }
-
-const empties = document.querySelectorAll(".empty");
 
 function dragStart(e) {
   e.dataTransfer.setData("text/plain", e.target.id);
@@ -143,5 +164,5 @@ function dragEnter(e) {
 }
 
 function dragLeave(e) {
-  this.className = "empty";
+  // this.className = "empty";
 }
