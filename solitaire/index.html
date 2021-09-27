@@ -12,8 +12,20 @@
     <title>Solitaire</title>
   </head>
   <body>
-    <button class="btn" id="undo">undo</button>
-    <div class="moves" id="moves">Moves:</div>
+    <div
+      style="
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        width: 50%;
+      "
+    >
+      <button class="btn ripple" id="undo">Undo</button>
+      <button class="btn ripple" id="reset">Reset</button>
+      <button class="btn ripple" id="win" style="right: 0">Simulate Win</button>
+    </div>
+
+    <div><h4 class="moves" id="moves">Moves: 0</h4></div>
     <div id="checkerboard" class="checkerboard"></div>
     <script src="script.js"></script>
   </body>

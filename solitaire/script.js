@@ -4,22 +4,184 @@ const movesDiv = document.getElementById("moves");
 const exemptIndices = [0, 1, 5, 6];
 const undoStack = [];
 const undoButton = document.getElementById("undo");
+const resetButton = document.getElementById("reset");
+const winButton = document.getElementById("win");
+const buttons = document.querySelectorAll(".ripple");
+
+buttons.forEach((button) => {
+  button.addEventListener("click", function (e) {
+    const x = e.clientX;
+    const y = e.clientY;
+
+    const buttonTop = e.target.offsetTop;
+    const buttonLeft = e.target.offsetLeft;
+
+    const xInside = x - buttonLeft;
+    const yInside = y - buttonTop;
+
+    const circle = document.createElement("span");
+    circle.classList.add("circle");
+    circle.style.top = yInside + "px";
+    circle.style.left = xInside + "px";
+
+    this.appendChild(circle);
+
+    setTimeout(() => {
+      circle.remove();
+    }, 500);
+  });
+});
 
 const size = 7;
 let currentRow = 0;
 let currentCol = 0;
 const centerIndex = Math.floor(size / 2);
+const winMoves = [
+  {
+    srcId: 38,
+    destId: 24,
+  },
+  {
+    srcId: 33,
+    destId: 31,
+  },
+  {
+    srcId: 46,
+    destId: 32,
+  },
+  {
+    srcId: 44,
+    destId: 46,
+  },
+  {
+    srcId: 25,
+    destId: 39,
+  },
+  {
+    srcId: 46,
+    destId: 32,
+  },
+  {
+    srcId: 31,
+    destId: 33,
+  },
+  {
+    srcId: 34,
+    destId: 32,
+  },
+  {
+    srcId: 27,
+    destId: 25,
+  },
+  {
+    srcId: 29,
+    destId: 31,
+  },
+  {
+    srcId: 16,
+    destId: 30,
+  },
+  {
+    srcId: 37,
+    destId: 23,
+  },
+  {
+    srcId: 14,
+    destId: 16,
+  },
+  {
+    srcId: 28,
+    destId: 14,
+  },
+  {
+    srcId: 17,
+    destId: 15,
+  },
+  {
+    srcId: 14,
+    destId: 16,
+  },
+  {
+    srcId: 19,
+    destId: 17,
+  },
+  {
+    srcId: 4,
+    destId: 18,
+  },
+  {
+    srcId: 2,
+    destId: 4,
+  },
+  {
+    srcId: 25,
+    destId: 11,
+  },
+  {
+    srcId: 4,
+    destId: 18,
+  },
+  {
+    srcId: 17,
+    destId: 19,
+  },
+  {
+    srcId: 20,
+    destId: 18,
+  },
+  {
+    srcId: 9,
+    destId: 11,
+  },
+  {
+    srcId: 16,
+    destId: 30,
+  },
+  {
+    srcId: 11,
+    destId: 25,
+  },
+  {
+    srcId: 25,
+    destId: 23,
+  },
+  {
+    srcId: 23,
+    destId: 37,
+  },
+  {
+    srcId: 32,
+    destId: 30,
+  },
+  {
+    srcId: 37,
+    destId: 23,
+  },
+  {
+    srcId: 22,
+    destId: 24,
+  },
+];
 
+undoButton.disabled = true;
+resetButton.disabled = true;
 function watch(val) {
   return new Proxy(JSON.parse('{"watch":' + val + "}"), {
     set: function (target, property, value) {
       movesDiv.innerText = `Moves: ${value}`;
       target[property] = value;
+      if (value >= 1) {
+        undoButton.disabled = false;
+        resetButton.disabled = false;
+      }
     },
   });
 }
 const moves = watch(0);
-
+resetButton.addEventListener("click", () => {
+  resetBoard();
+  createBoard();
+});
 undoButton.addEventListener("click", () => {
   if (!undoStack || undoStack.length === 0) {
     return false;
@@ -50,6 +212,43 @@ undoButton.addEventListener("click", () => {
   }
 });
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resetBoard() {
+  checkerboard.innerHTML = "";
+  undoButton.disabled = true;
+  resetButton.disabled = true;
+  moves.watch = 0;
+}
+
+winButton.addEventListener("click", async () => {
+  resetBoard();
+  createBoard();
+  undoButton.disabled = true;
+  winButton.disabled = true;
+  for (const move of winMoves) {
+    await sleep(1000);
+    const { srcId, destId } = move;
+    const { isValid, immediateId } = checkMoveValidity(srcId, destId);
+    if (isValid) {
+      //count moves
+      moves.watch++;
+      const immediateBoard = document.getElementById(`${immediateId}`);
+      const destBoard = document.getElementById(`${destId}`);
+      const srcBoard = document.getElementById(`${srcId}`);
+      const immediateMarble = createMarble(immediateId);
+      immediateBoard.removeChild(immediateBoard.firstChild);
+      const destMarble = createMarble(destId);
+      destBoard.appendChild(destMarble);
+      srcBoard.removeChild(srcBoard.firstChild);
+    }
+  }
+  undoButton.disabled = false;
+  winButton.disabled = false;
+});
+
 function getRowCol(index) {
   const r = Math.floor(index / size);
   //Col is found by the modulus of the ith index over size.
@@ -75,84 +274,91 @@ function createMarble(id) {
   return marblediv;
 }
 
-//add row container for dent on same row
-let rowDiv = document.createElement("div");
-rowDiv.classList.add("row");
-checkerboard.appendChild(rowDiv);
-for (let i = 0; i < Math.pow(size, 2); i++) {
-  //create a dent div
-  const div = document.createElement("div");
-  div.classList.add("dent");
-  div.addEventListener("dragover", dragOver);
-  div.addEventListener("dragenter", dragEnter);
-  div.addEventListener("dragleave", dragLeave);
+function createBoard() {
+  resetBoard();
+  //add row container for dent on same row
+  let rowDiv = document.createElement("div");
+  rowDiv.classList.add("row");
+  checkerboard.appendChild(rowDiv);
+  for (let i = 0; i < Math.pow(size, 2); i++) {
+    //create a dent div
+    const div = document.createElement("div");
+    div.classList.add("dent");
+    div.addEventListener("dragover", dragOver);
+    div.addEventListener("dragenter", dragEnter);
+    div.addEventListener("dragleave", dragLeave);
 
-  //add an id for each dent div
-  div.id = i;
-  //create a marble div
-  const marblediv = createMarble(i);
-  // marblediv.id = i + "c";
-  // marblediv.draggable = true;
-  // marblediv.classList.add("marble");
-  // marblediv.addEventListener("dragstart", function (e) {
-  //   // set the draggable element
-  //   e.dataTransfer.setData(
-  //     "text/plain",
-  //     JSON.stringify({ dragId: e.target.id, srcId: e.target.parentNode.id })
-  //   );
-  //   this.className += " hold";
-  // });
-  // marblediv.addEventListener("dragend", dragEnd);
+    //add an id for each dent div
+    div.id = i;
+    //create a marble div
+    const marblediv = createMarble(i);
+    // marblediv.id = i + "c";
+    // marblediv.draggable = true;
+    // marblediv.classList.add("marble");
+    // marblediv.addEventListener("dragstart", function (e) {
+    //   // set the draggable element
+    //   e.dataTransfer.setData(
+    //     "text/plain",
+    //     JSON.stringify({ dragId: e.target.id, srcId: e.target.parentNode.id })
+    //   );
+    //   this.className += " hold";
+    // });
+    // marblediv.addEventListener("dragend", dragEnd);
 
-  div.addEventListener("drop", function (e) {
-    //https://www.javascripttutorial.net/web-apis/javascript-drag-and-drop/
-    // get the draggable element
-    const { dragId, srcId } = JSON.parse(e.dataTransfer.getData("text/plain"));
-    const destId = parseInt(e.target.id);
-    const { isValid, immediateId } = checkMoveValidity(srcId, destId);
-    if (isValid) {
-      //count moves
-      moves.watch++;
-      const immediateBoard = document.getElementById(`${immediateId}`);
-      immediateBoard.removeChild(immediateBoard.firstChild);
-      const draggable = document.getElementById(dragId);
-      if (!e.target.draggable) {
-        // add it to the drop target
-        e.target.appendChild(draggable);
-        undoStack.push({ srcId, destId });
+    div.addEventListener("drop", function (e) {
+      //https://www.javascripttutorial.net/web-apis/javascript-drag-and-drop/
+      // get the draggable element
+      const { dragId, srcId } = JSON.parse(
+        e.dataTransfer.getData("text/plain")
+      );
+      const destId = parseInt(e.target.id);
+      const { isValid, immediateId } = checkMoveValidity(srcId, destId);
+      if (isValid) {
+        //count moves
+        moves.watch++;
+        const immediateBoard = document.getElementById(`${immediateId}`);
+        immediateBoard.removeChild(immediateBoard.firstChild);
+        const draggable = document.getElementById(dragId);
+        if (!e.target.draggable) {
+          // add it to the drop target
+          e.target.appendChild(draggable);
+          undoStack.push({ srcId: parseInt(srcId), destId });
+        }
+      }
+    });
+    //since we are using a one dimensional array for a two dimensional board, we calculate the row and the column to assign the appropriate color
+    //Row is found by dividing the ith index by size and taking the lower bound.
+    // const irow = Math.floor(i / size);
+    //Col is found by the modulus of the ith index over size.
+    // const icol = i % size;
+    //when irow is != row, then the row has changed. So we make irow the current row.
+    const { irow, icol } = getRowCol(i);
+
+    if (currentRow !== irow) {
+      rowDiv = document.createElement("div");
+      rowDiv.classList.add("row");
+      checkerboard.appendChild(rowDiv);
+      currentRow = irow;
+    }
+    div.classList.add("dent");
+
+    //exclude putting marble in center dent
+    /**
+     * Here,
+     */
+    if (i !== centerIndex * size + centerIndex) {
+      if (exemptIndices.includes(irow) && exemptIndices.includes(icol)) {
+        div.classList.add("invisible");
+      } else {
+        div.appendChild(marblediv);
       }
     }
-  });
-  //since we are using a one dimensional array for a two dimensional board, we calculate the row and the column to assign the appropriate color
-  //Row is found by dividing the ith index by size and taking the lower bound.
-  // const irow = Math.floor(i / size);
-  //Col is found by the modulus of the ith index over size.
-  // const icol = i % size;
-  //when irow is != row, then the row has changed. So we make irow the current row.
-  const { irow, icol } = getRowCol(i);
 
-  if (currentRow !== irow) {
-    rowDiv = document.createElement("div");
-    rowDiv.classList.add("row");
-    checkerboard.appendChild(rowDiv);
-    currentRow = irow;
+    rowDiv.appendChild(div);
   }
-  div.classList.add("dent");
-
-  //exclude putting marble in center dent
-  /**
-   * Here,
-   */
-  if (i !== centerIndex * size + centerIndex) {
-    if (exemptIndices.includes(irow) && exemptIndices.includes(icol)) {
-      div.classList.add("invisible");
-    } else {
-      div.appendChild(marblediv);
-    }
-  }
-
-  rowDiv.appendChild(div);
 }
+
+createBoard();
 
 function checkMoveValidity(srcId, destId) {
   //get row/col details of the source
