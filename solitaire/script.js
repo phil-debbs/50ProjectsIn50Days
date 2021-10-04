@@ -163,8 +163,11 @@ const winMoves = [
   },
 ];
 
+let isReset = false;
+
 undoButton.disabled = true;
 resetButton.disabled = true;
+
 function watch(val) {
   return new Proxy(JSON.parse('{"watch":' + val + "}"), {
     set: function (target, property, value) {
@@ -178,11 +181,16 @@ function watch(val) {
   });
 }
 const moves = watch(0);
+
 resetButton.addEventListener("click", () => {
+  isReset = true;
   resetBoard();
   createBoard();
+  undoButton.disabled = true;
+  resetButton.disabled = true;
 });
 undoButton.addEventListener("click", () => {
+  isReset = false;
   if (!undoStack || undoStack.length === 0) {
     return false;
   }
@@ -218,17 +226,21 @@ function sleep(ms) {
 
 function resetBoard() {
   checkerboard.innerHTML = "";
-  undoButton.disabled = true;
-  resetButton.disabled = true;
   moves.watch = 0;
 }
 
 winButton.addEventListener("click", async () => {
+  isReset = false;
   resetBoard();
   createBoard();
   undoButton.disabled = true;
   winButton.disabled = true;
   for (const move of winMoves) {
+    if (isReset) {
+      resetBoard();
+      createBoard();
+      break;
+    }
     await sleep(1000);
     const { srcId, destId } = move;
     const { isValid, immediateId } = checkMoveValidity(srcId, destId);
@@ -238,10 +250,17 @@ winButton.addEventListener("click", async () => {
       const immediateBoard = document.getElementById(`${immediateId}`);
       const destBoard = document.getElementById(`${destId}`);
       const srcBoard = document.getElementById(`${srcId}`);
-      const immediateMarble = createMarble(immediateId);
-      immediateBoard.removeChild(immediateBoard.firstChild);
+      srcBoard.firstChild.classList.add("selected");
+      immediateBoard.firstChild.classList.add("immediate-marble");
       const destMarble = createMarble(destId);
+      await sleep(500);
+      srcBoard.firstChild.classList.remove("selected");
+      await sleep(500);
+      immediateBoard.removeChild(immediateBoard.firstChild);
+
       destBoard.appendChild(destMarble);
+
+      // await sleep(500);
       srcBoard.removeChild(srcBoard.firstChild);
     }
   }
@@ -270,7 +289,23 @@ function createMarble(id) {
     );
     this.className += " hold";
   });
+  // marblediv.addEventListener("touchmove", function (e) {
+  //   // set the draggable element
+  //   // e.dataTransfer.setData(
+  //   //   "text/plain",
+  //   //   JSON.stringify({ dragId: e.target.id, srcId: e.target.parentNode.id })
+  //   // );
+  //   // this.className += " hold";
+  //   console.log(e);
+  // });
   marblediv.addEventListener("dragend", dragEnd);
+  // marblediv.addEventListener("touchend", function (e) {
+  //   // current box position.
+  //   // var x = parseInt(box.style.left);
+  //   // var y = parseInt(box.style.top);
+  //   console.log(e);
+  // });
+
   return marblediv;
 }
 
@@ -287,23 +322,57 @@ function createBoard() {
     div.addEventListener("dragover", dragOver);
     div.addEventListener("dragenter", dragEnter);
     div.addEventListener("dragleave", dragLeave);
+    //mobile events
+    div.addEventListener("touchstart", function (e) {
+      // set the draggable element
+      // e.dataTransfer.setData(
+      //   "text/plain",
+      //   JSON.stringify({ dragId: e.target.id, srcId: e.target.parentNode.id })
+      // );
+      // this.className += " hold";
+      //
+      const selected = document.querySelector(".selected");
+      if (selected && selected.id === e.target.id) {
+        //clicked an already selected marble, so deselect it
+        e.target.classList.remove("selected");
+      } else if (selected && selected.id !== e.target.id) {
+        //clicked a different location
+        //check for validity
+        const destId = e.target.id;
+        const srcId = selected.parentNode.id;
+        const { isValid, immediateId } = checkMoveValidity(srcId, destId);
+        if (isValid) {
+          selected.classList.remove("selected");
+          moves.watch++;
+          const immediateBoard = document.getElementById(`${immediateId}`);
+          const destBoard = document.getElementById(`${destId}`);
+          const srcBoard = document.getElementById(`${srcId}`);
+          srcBoard.firstChild.classList.add("selected");
+          immediateBoard.firstChild.classList.add("immediate-marble");
+          const destMarble = createMarble(destId);
+          srcBoard.firstChild.classList.remove("selected");
+          immediateBoard.removeChild(immediateBoard.firstChild);
+
+          destBoard.appendChild(destMarble);
+          destMarble.classList.remove("selected");
+          srcBoard.removeChild(srcBoard.firstChild);
+          const sel = document.querySelector(".selected");
+          return false;
+        } else {
+          //unselect source
+          selected.classList.remove("selected");
+        }
+      } else {
+        if (e.target.className.includes("marble")) {
+          e.target.classList.add("selected");
+        }
+      }
+    });
 
     //add an id for each dent div
     div.id = i;
     //create a marble div
     const marblediv = createMarble(i);
-    // marblediv.id = i + "c";
-    // marblediv.draggable = true;
-    // marblediv.classList.add("marble");
-    // marblediv.addEventListener("dragstart", function (e) {
-    //   // set the draggable element
-    //   e.dataTransfer.setData(
-    //     "text/plain",
-    //     JSON.stringify({ dragId: e.target.id, srcId: e.target.parentNode.id })
-    //   );
-    //   this.className += " hold";
-    // });
-    // marblediv.addEventListener("dragend", dragEnd);
 
     div.addEventListener("drop", function (e) {
       //https://www.javascripttutorial.net/web-apis/javascript-drag-and-drop/
@@ -366,6 +435,11 @@ function checkMoveValidity(srcId, destId) {
   const srcRow = src.irow;
   const srcCol = src.icol;
 
+  //get dest element and check if it has a classname of dent
+  const destEle = document.getElementById(destId);
+  if (!destEle.className.includes("dent")) {
+    return { isValid: false };
+  }
   //get row/col details of the dest
   const dest = getRowCol(destId);
   const destRow = dest.irow;
@@ -387,28 +461,10 @@ function checkMoveValidity(srcId, destId) {
 
     const isValid = validNeighbour; //&& immediateBoard.firstChild;
 
-    // if (isValid) {
     return { isValid, immediateId };
-    // }
-
-    // return false;
-    // if () {
-    //   //valid destination so move.
-    //   //count moves
-    //   moves.watch++;
-
-    //   const draggable = document.getElementById(dragId);
-    //   if (!e.target.draggable) {
-    //     // add it to the drop target
-    //     e.target.appendChild(draggable);
-    //     undoStack.push({ srcId, destId });
-    //   }
-    // }
+  } else {
+    return {};
   }
-}
-function dragStart(e) {
-  e.dataTransfer.setData("text/plain", e.target.id);
-  this.className += " hold";
 }
 
 function dragEnd(e) {

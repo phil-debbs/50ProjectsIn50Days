@@ -15,16 +15,17 @@ body {
   margin: 0;
 }
 .checkerboard {
+  background-color: steelblue;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background-image: url("wooden1.jpg");
+  /* background-image: url("wooden1.jpg"); */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   max-width: 100%;
-  width: 700px;
-  height: 700px;
+  width: 400px;
+  height: 400px;
   margin: 0 auto;
   text-align: center;
   border: solid 1rem grey;
@@ -41,8 +42,8 @@ div.row {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 5em;
-  width: 5em;
+  height: 2rem;
+  width: 2rem;
   border-radius: 50%;
   margin: 5px;
   /* border: solid 3px black; */
@@ -50,15 +51,31 @@ div.row {
 }
 
 .marble {
-  background-image: url("ball2.png");
+  /* background-image: url("ball2.png"); */
   background-size: contain;
-  height: 4.5em;
-  width: 4.5em;
-  background-color: #fff;
+  background-color: peru;
+  height: 2rem;
+  width: 2rem;
   border-radius: 50%;
   cursor: pointer;
 }
 
+/* .marble:hover {
+  background-color: green;
+} */
+
+.marble.selected {
+  background-color: blue;
+}
+.marble:active {
+  cursor: grabbing;
+}
+.source-marble {
+  background-color: blue;
+}
+.immediate-marble {
+  background-color: red;
+}
 /* .hold {
   border: solid 5px #ccc;
 } */
@@ -128,10 +145,10 @@ button .circle {
     opacity: 0;
   }
 }
-@media (max-width: 800px) {
+/* @media (max-width: 800px) {
   .checkerboard,
   .dent,
   .container {
     transform: scale(0.65);
   }
-}
+} */
